@@ -36,12 +36,32 @@ async function run() {
     const applicationCollection = client.db('jobsPortal').collection('application')
 
         //jobs api 
-        app.get('/jobs', async(req, res)=>{
-            const cursor = jobsCollection.find();
-            const result = await cursor.toArray();
+        // app.get('/jobs', async(req, res)=>{
+        //     const cursor = jobsCollection.find();
+        //     const result = await cursor.toArray();
 
-            res.send(result)
-        });
+        //     res.send(result)
+        // });
+
+        app.get('/jobs', async (req, res) => {
+    const search = req.query.search || '';
+    const category = req.query.category || '';
+
+    const query = {};
+
+    
+    if (search) {
+        query.$text = { $search: search };
+    }
+
+    if (category) {
+        query.category = category;
+    }
+
+        const result = await jobsCollection.find(query).toArray();
+        res.send(result);
+    
+});
 
         app.get('/jobs/:id', async(req, res)=>{
           const id = req.params.id;
