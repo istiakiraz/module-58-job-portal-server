@@ -55,7 +55,7 @@ async function run() {
       const category = req.query.category || '';
 
       const email = req.query.email
-      
+
       const query = {};
 
       if(email){
@@ -63,7 +63,7 @@ async function run() {
       }
 
       if (search) {
-        query.$text = { $search: search };
+         query.title = { $regex: search, $options: 'i' };
       }
 
       if (category) {
