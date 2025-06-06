@@ -17,7 +17,18 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
+
+const logger = (req, res , next)=>{
+  console.log('inside the logger middleware');
+  next();
+}
+
+const verifyToken = (req, res , next )=>{
+  const token = req?.cookies?.token;
+  console.log('cookie in the middleware', token );
+next()
+}
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.un5m5dm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -79,14 +90,14 @@ async function run() {
 
     await jobsCollection.createIndex({ title: "text" });
 
-    app.get('/jobs', async (req, res) => {
+    app.get('/jobs', logger, verifyToken, async (req, res) => {
 
       const search = req.query.search || '';
       const category = req.query.category || '';
 
       const email = req.query.email
 
-      console.log("inside application api", req.cookies);
+      // console.log("inside application api", req.cookies);
 
       const query = {};
 
