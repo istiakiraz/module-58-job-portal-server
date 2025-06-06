@@ -19,15 +19,27 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-const logger = (req, res , next)=>{
+const logger = (req, res, next) => {
   console.log('inside the logger middleware');
   next();
 }
 
-const verifyToken = (req, res , next )=>{
+const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
-  console.log('cookie in the middleware', token );
-next()
+  console.log('cookie in the middleware', token);
+
+  if (!token) {
+    return res.status(401).send({ message: 'unauthorized access' })
+  }
+
+  // verify token
+  jwt.verify(token, process.env.JWT_ACCESS_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: 'unauthorized access' })
+    }
+    req.decoded = decoded
+    next()
+  })
 }
 
 
@@ -63,9 +75,9 @@ async function run() {
     //   res.send({token})
     // })
 
-    app.post('/jwt', async(req, res)=>{
+    app.post('/jwt', async (req, res) => {
       const userData = req.body;
-      const token = jwt.sign(userData, process.env.JWT_ACCESS_SECRET, {expiresIn: '1d'})
+      const token = jwt.sign(userData, process.env.JWT_ACCESS_SECRET, { expiresIn: '1d' })
 
       //set token in the cookie
       res.cookie('token', token, {
@@ -73,7 +85,7 @@ async function run() {
         secure: false
       })
 
-      res.send({success : true})
+      res.send({ success: true })
 
     })
 
@@ -101,19 +113,19 @@ async function run() {
 
       const query = {};
 
-      if(email){
+      if (email) {
         query.hr_email = email
       }
 
       if (search) {
-         query.title = { $regex: search, $options: 'i' };
+        query.title = { $regex: search, $options: 'i' };
       }
 
       if (category) {
         query.category = category;
       }
 
-      
+
 
 
 
