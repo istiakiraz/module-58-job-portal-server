@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 
@@ -10,8 +12,12 @@ const port = process.env.PORT || 3000;
 
 //middleware
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173'],
+  credentials: true,
+}));
 app.use(express.json());
+app.use(cookieParser())
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.un5m5dm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -36,6 +42,30 @@ async function run() {
     const jobsCollection = client.db('jobsPortal').collection('jobs');
     const applicationCollection = client.db('jobsPortal').collection('application')
 
+    // jwt token related api 
+    // app.post('/jwt', async(req, res)=>{
+    //   const {email} = req.body;
+
+    //   const user = {email}
+
+    //   const token = jwt.sign(user, process.env.JWT_ACCESS_SECRET, {expiresIn: '1h'})
+    //   res.send({token})
+    // })
+
+    app.post('/jwt', async(req, res)=>{
+      const userData = req.body;
+      const token = jwt.sign(userData, process.env.JWT_ACCESS_SECRET, {expiresIn: '1d'})
+
+      //set token in the cookie
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: false
+      })
+
+      res.send({success : true})
+
+    })
+
 
 
     // jobs api 
@@ -55,6 +85,8 @@ async function run() {
       const category = req.query.category || '';
 
       const email = req.query.email
+
+      console.log("inside application api", req.cookies);
 
       const query = {};
 
@@ -115,6 +147,8 @@ async function run() {
 
     app.get('/applications', async (req, res) => {
       const email = req.query.email;
+
+      // console.log("inside application api", req.cookies);
 
       const query = {
         applicant: email
