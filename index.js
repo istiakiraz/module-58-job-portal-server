@@ -110,7 +110,10 @@ async function run() {
       const email = req.query.email
 
       // console.log("inside application api", req.cookies);
-
+      if(email !== req.decoded.email){
+        return res.status(403).send({message: "forbidden access"})
+      }
+      
       const query = {};
 
       if (email) {
